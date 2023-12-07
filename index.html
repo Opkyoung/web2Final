@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Stickman Drawing</title>
+  <style>
+    html,body{margin: 0; padding: 0;}
+    body{background: #a4d0ff;}
+    button{padding: 5px 15px}
+    .center{text-align: center; margin-top:50px}
+    .shoot{margin: auto; width: 70px; height: 30px}
+    #box {margin:auto; width: 400px; height: 300px; border: 4px solid black; padding-bottom: 50px; background: lightyellow;}
+    #stickmanCanvas{position: absolute;}
+    #stickmanCanvas2{position: absolute;}
+    #monitor{padding: 10px; border: 1px solid black;margin: auto;margin-top: 50px; background: #84a1c1; width: 61%; z-index: 2; position: relative; /* position 속성 추가 */}
+     #overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.75);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1;
+    }
+  </style>
+</head>
+<body>
+   <div style="text-align: center; margin: 20px 0px;"><b>stickman</b>들의 머리를 잡고 움직여보세요. <br>팔다리도 드래그 해보세요.</div>
+  <div id="box">
+
+    <canvas id="stickmanCanvas" width="400" height="350"></canvas>
+    <canvas id="stickmanCanvas2" width="400" height="350"></canvas>
+
+ 
+
+  </div>
+
+
+  <div class="center">
+    <button id="shoot"><b>찰칵!</b></button>
+    <button id="play"><b>자 이제 움직이렴~</b></button>
+  </div>
+  <div id="monitor"></div>
+  <div id="overlay">
+    <div id="animation-container"></div>
+  </div>
+
+
+  <script src="https://github.com/niklasvh/html2canvas/releases/download/0.5.0-alpha1/html2canvas.js"></script>
+
+  <script>
+    const canvas1 = document.getElementById('stickmanCanvas');
+    const ctx1 = canvas1.getContext('2d');
+
+    const canvas2 = document.getElementById('stickmanCanvas2');
+    const ctx2 = canvas2.getContext('2d');
+
+
+    let rightArmAngle = -Math.PI / 1.3;
+    let leftArmAngle = Math.PI / 1.3;
+    let leftLegAngle = Math.PI / 1.3;
+    let rightLegAngle = -Math.PI / 1.3;
+
+      rightArmAngle = Math.PI - rightArmAngle;
+    rightArmAngle = -rightArmAngle;
+
+        rightLegAngle = Math.PI - rightLegAngle;
+    rightLegAngle = -rightLegAngle;
+
+
+
+    let bodyX = 100; // 몸 전체의 X 좌표를 추가합니다.
+    let bodyY = 130; // 몸 전체의 Y 좌표를 추가합니다.
+    let isDraggingRightArm = false;
+    let isDraggingLeftArm = false;
+    let isDraggingLeftLeg = false;
+    let isDraggingRightLeg = false;
+    let isDraggingBody = false; // 몸 전체를 드래그하는 상태를 나타내는 변수를 추가합니다.
+
+    function drawStickman() {
+      ctx1.clearRect(0, 0, canvas1.width, canvas1.height);
+
+      ctx1.strokeStyle = 'black';
+      ctx1.lineWidth = 3;
+
+      ctx1.beginPath();
+      ctx1.moveTo(bodyX, bodyY); // 몸 전체의 위치로 시작점을 이동합니다.
+      ctx1.lineTo(bodyX, bodyY + 100); // 몸 전체를 그립니다.
+      ctx1.stroke();
+
+      ctx1.beginPath();
+      ctx1.moveTo(bodyX, bodyY + 15);
+      ctx1.lineTo(bodyX + Math.cos(rightArmAngle) * 60, bodyY + 20 + Math.sin(rightArmAngle) * 80);
+      ctx1.stroke();
+
+      ctx1.beginPath();
+      ctx1.moveTo(bodyX, bodyY + 15);
+      ctx1.lineTo(bodyX + Math.cos(leftArmAngle) * 60, bodyY + 20 + Math.sin(leftArmAngle) * 80);
+      ctx1.stroke();
+
+      ctx1.beginPath();
+      ctx1.arc(bodyX, bodyY - 30, 30, 0, Math.PI * 2, true);
+      ctx1.fillStyle = 'white';
+      ctx1.fill();
+      ctx1.stroke();
+
+      ctx1.beginPath();
+      ctx1.moveTo(bodyX, bodyY + 100);
+      ctx1.lineTo(bodyX + Math.cos(leftLegAngle) * 60, bodyY + 100 + Math.sin(leftLegAngle) * 80);
+      ctx1.stroke();
+
+      ctx1.beginPath();
+      ctx1.moveTo(bodyX, bodyY + 100);
+      ctx1.lineTo(bodyX + Math.cos(rightLegAngle) * 60, bodyY + 100 + Math.sin(rightLegAngle) * 80);
+      ctx1.stroke();
+    }
+
+    function updateRightArmAngle(e) {
+      if (isDraggingRightArm) {
+        const rect = canvas1.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        rightArmAngle = Math.atan2(mouseY - (bodyY + 20), mouseX - bodyX);
+        drawStickman();
+      }
+    }
+
+    function updateLeftArmAngle(e) {
+      if (isDraggingLeftArm) {
+        const rect = canvas1.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        leftArmAngle = Math.atan2(mouseY - (bodyY + 20), mouseX - bodyX);
+        drawStickman();
+      }
+    }
+
+    function updateLeftLegAngle(e) {
+      if (isDraggingLeftLeg) {
+        const rect = canvas1.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        leftLegAngle = Math.atan2(mouseY - (bodyY + 100), mouseX - bodyX);
+        drawStickman();
+      }
+    }
+
+    function updateRightLegAngle(e) {
+      if (isDraggingRightLeg) {
+        const rect = canvas1.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        rightLegAngle = Math.atan2(mouseY - (bodyY + 100), mouseX - bodyX);
+        drawStickman();
+      }
+    }
+
+    function updateBodyPosition(e) {
+      if (isDraggingBody) {
+        const rect = canvas1.getBoundingClientRect();
+        bodyX = e.clientX - rect.left;
+        bodyY = e.clientY - rect.top;
+        drawStickman();
+      }
+    }
+
+    canvas1.addEventListener('mousedown', (e) => {
+      const rect = canvas1.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      const rightArmEndX = bodyX + Math.cos(rightArmAngle) * 60;
+      const rightArmEndY = bodyY + 20 + Math.sin(rightArmAngle) * 60;
+      const rightArmDistance = Math.sqrt(
+        (mouseX - rightArmEndX) ** 2 + (mouseY - rightArmEndY) ** 2
+      );
+
+      const leftArmEndX = bodyX + Math.cos(leftArmAngle) * 60;
+      const leftArmEndY = bodyY + 20 + Math.sin(leftArmAngle) * 60;
+      const leftArmDistance = Math.sqrt(
+        (mouseX - leftArmEndX) ** 2 + (mouseY - leftArmEndY) ** 2
+      );
+
+      const leftLegEndX = bodyX + Math.cos(leftLegAngle) * 60;
+      const leftLegEndY = bodyY + 100 + Math.sin(leftLegAngle) * 60;
+      const leftLegDistance = Math.sqrt(
+        (mouseX - leftLegEndX) ** 2 + (mouseY - leftLegEndY) ** 2
+      );
+
+      const rightLegEndX = bodyX + Math.cos(rightLegAngle) * 60;
+      const rightLegEndY = bodyY + 100 + Math.sin(rightLegAngle) * 60;
+      const rightLegDistance = Math.sqrt(
+        (mouseX - rightLegEndX) ** 2 + (mouseY - rightLegEndY) ** 2
+      );
+
+      const bodyDistance = Math.sqrt(
+        (mouseX - bodyX) ** 2 + (mouseY - bodyY) ** 2
+      );
+
+      if (rightArmDistance < 20) {
+        isDraggingRightArm = true;
+      } else if (leftArmDistance < 20) {
+        isDraggingLeftArm = true;
+      } else if (leftLegDistance < 20) {
+        isDraggingLeftLeg = true;
+      } else if (rightLegDistance < 20) {
+        isDraggingRightLeg = true;
+      } else if (bodyDistance < 40) {
+        isDraggingBody = true;
+      }
+    });
+
+    canvas1.addEventListener('mousemove', (e) => {
+      updateRightArmAngle(e);
+      updateLeftArmAngle(e);
+      updateLeftLegAngle(e);
+      updateRightLegAngle(e);
+      updateBodyPosition(e);
+    });
+
+    canvas1.addEventListener('mouseup', () => {
+      isDraggingRightArm = false;
+      isDraggingLeftArm = false;
+      isDraggingLeftLeg = false;
+      isDraggingRightLeg = false;
+      isDraggingBody = false;
+    });
+
+    drawStickman();
+
+    
+//******** 스틱맨2 **********************//
+
+    let secRightArmAngle = -Math.PI / 1.3;
+    let secLeftArmAngle = Math.PI / 1.3;
+    let secLeftLegAngle = Math.PI / 1.3;
+    let secRightLegAngle = -Math.PI / 1.3;
+
+      secRightArmAngle = Math.PI - secRightArmAngle;
+    secRightArmAngle = -secRightArmAngle;
+
+        secRightLegAngle = Math.PI - secRightLegAngle;
+    secRightLegAngle = -secRightLegAngle;
+
+
+
+    let secBodyX = 300; // 몸 전체의 X 좌표를 추가합니다.
+    let secBodyY = 130; // 몸 전체의 Y 좌표를 추가합니다.
+    let secIsDraggingRightArm = false;
+    let secIsDraggingLeftArm = false;
+    let secIsDraggingLeftLeg = false;
+    let secIsDraggingRightLeg = false;
+    let secIsDraggingBody = false; // 몸 전체를 드래그하는 상태를 나타내는 변수를 추가합니다.
+
+    function drawStickman2() {
+      ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
+
+      ctx2.strokeStyle = 'black';
+      ctx2.lineWidth = 3;
+
+      ctx2.beginPath();
+      ctx2.moveTo(secBodyX, secBodyY); // 몸 전체의 위치로 시작점을 이동합니다.
+      ctx2.lineTo(secBodyX, secBodyY + 100); // 몸 전체를 그립니다.
+      ctx2.stroke();
+
+      ctx2.beginPath();
+      ctx2.moveTo(secBodyX, secBodyY + 15);
+      ctx2.lineTo(secBodyX + Math.cos(secRightArmAngle) * 60, secBodyY + 20 + Math.sin(secRightArmAngle) * 80);
+      ctx2.stroke();
+
+      ctx2.beginPath();
+      ctx2.moveTo(secBodyX, secBodyY + 15);
+      ctx2.lineTo(secBodyX + Math.cos(secLeftArmAngle) * 60, secBodyY + 20 + Math.sin(secLeftArmAngle) * 80);
+      ctx2.stroke();
+
+      ctx2.beginPath();
+      ctx2.arc(secBodyX, secBodyY - 30, 30, 0, Math.PI * 2, true);
+      ctx2.fillStyle = 'white';
+      ctx2.fill();
+      ctx2.stroke();
+
+      ctx2.beginPath();
+      ctx2.moveTo(secBodyX, secBodyY + 100);
+      ctx2.lineTo(secBodyX + Math.cos(secLeftLegAngle) * 60, secBodyY + 100 + Math.sin(secLeftLegAngle) * 80);
+      ctx2.stroke();
+
+      ctx2.beginPath();
+      ctx2.moveTo(secBodyX, secBodyY + 100);
+      ctx2.lineTo(secBodyX + Math.cos(secRightLegAngle) * 60, secBodyY + 100 + Math.sin(secRightLegAngle) * 80);
+      ctx2.stroke();
+    }
+
+    function updateSecRightArmAngle(e) {
+      if (secIsDraggingRightArm) {
+        const rect = canvas2.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        secRightArmAngle = Math.atan2(mouseY - (secBodyY + 20), mouseX - secBodyX);
+        drawStickman2();
+      }
+    }
+
+    function updateSecLeftArmAngle(e) {
+      if (secIsDraggingLeftArm) {
+        const rect = canvas2.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        secLeftArmAngle = Math.atan2(mouseY - (secBodyY + 20), mouseX - secBodyX);
+        drawStickman2();
+      }
+    }
+
+    function updateSecLeftLegAngle(e) {
+      if (secIsDraggingLeftLeg) {
+        const rect = canvas2.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        secLeftLegAngle = Math.atan2(mouseY - (secBodyY + 100), mouseX - secBodyX);
+        drawStickman2();
+      }
+    }
+
+    function updateSecRightLegAngle(e) {
+      if (secIsDraggingRightLeg) {
+        const rect = canvas2.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        secRightLegAngle = Math.atan2(mouseY - (secBodyY + 100), mouseX - secBodyX);
+        drawStickman2();
+      }
+    }
+
+    function updateSecBodyPosition(e) {
+      if (secIsDraggingBody) {
+        const rect = canvas2.getBoundingClientRect();
+        secBodyX = e.clientX - rect.left;
+        secBodyY = e.clientY - rect.top;
+        drawStickman2();
+      }
+    }
+
+    canvas2.addEventListener('mousedown', (e) => {
+      const rect = canvas2.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      const secRightArmEndX = secBodyX + Math.cos(secRightArmAngle) * 60;
+      const secRightArmEndY = secBodyY + 20 + Math.sin(secRightArmAngle) * 60;
+      const secRightArmDistance = Math.sqrt(
+        (mouseX - secRightArmEndX) ** 2 + (mouseY - secRightArmEndY) ** 2
+      );
+
+      const secLeftArmEndX = secBodyX + Math.cos(secLeftArmAngle) * 60;
+      const secLeftArmEndY = secBodyY + 20 + Math.sin(secLeftArmAngle) * 60;
+      const secLeftArmDistance = Math.sqrt(
+        (mouseX - secLeftArmEndX) ** 2 + (mouseY - secLeftArmEndY) ** 2
+      );
+
+      const secLeftLegEndX = secBodyX + Math.cos(secLeftLegAngle) * 60;
+      const secLeftLegEndY = secBodyY + 100 + Math.sin(secLeftLegAngle) * 60;
+      const secLeftLegDistance = Math.sqrt(
+        (mouseX - secLeftLegEndX) ** 2 + (mouseY - secLeftLegEndY) ** 2
+      );
+
+      const secRightLegEndX = secBodyX + Math.cos(secRightLegAngle) * 60;
+      const secRightLegEndY = secBodyY + 100 + Math.sin(secRightLegAngle) * 60;
+      const secRightLegDistance = Math.sqrt(
+        (mouseX - secRightLegEndX) ** 2 + (mouseY - secRightLegEndY) ** 2
+      );
+
+      const secBodyDistance = Math.sqrt(
+        (mouseX - secBodyX) ** 2 + (mouseY - secBodyY) ** 2
+      );
+
+      if (secRightArmDistance < 20) {
+        secIsDraggingRightArm = true;
+      } else if (secLeftArmDistance < 20) {
+        secIsDraggingLeftArm = true;
+      } else if (secLeftLegDistance < 20) {
+        secIsDraggingLeftLeg = true;
+      } else if (secRightLegDistance < 20) {
+        secIsDraggingRightLeg = true;
+      } else if (secBodyDistance < 40) {
+        secIsDraggingBody = true;
+      }
+    });
+
+    canvas2.addEventListener('mousemove', (e) => {
+      updateSecRightArmAngle(e);
+      updateSecLeftArmAngle(e);
+      updateSecLeftLegAngle(e);
+      updateSecRightLegAngle(e);
+      updateSecBodyPosition(e);
+    });
+
+    canvas2.addEventListener('mouseup', () => {
+      secIsDraggingRightArm = false;
+      secIsDraggingLeftArm = false;
+      secIsDraggingLeftLeg = false;
+      secIsDraggingRightLeg = false;
+      secIsDraggingBody = false;
+    });
+
+    drawStickman2();
+
+    ///스틱맨2 끝
+
+
+
+
+//스크린샷 특정 버튼 클릭시 아래 함수를 실행하면 output박스에 이미지가 채워집니다.
+//input은 스크린샷을 찍을 영역의 박스id입니다.
+//output이 지정되어있지 않으면 바로 화면에 추가합니다.
+
+
+      function screenShot(input,output) {
+  html2canvas(document.getElementById(input), {
+  onrendered: function(canvas) {
+  if(output == null){
+  //output이 없으면 도큐먼트에 추가합니다.
+  document.body.appendChild(canvas);
+  }else{
+  let a = document.getElementById(output);
+  let s = document.createElement("img");
+  //여기서 생성되는 썸네일의 크기를 조절할 수 있습니다.
+  s.style.width = "150px";
+  s.style.height = "auto";
+  s.style.margin = "10px 10px"
+  s.src = canvas.toDataURL('image/png');
+  a.appendChild(s);
+  }
+  }
+  });
+  }
+
+ document.getElementById('shoot').onclick = function() {
+  screenShot("box", "monitor");
+};
+
+
+document.getElementById('play').onclick = function() {
+  let one;
+  document.getElementById('shoot').onclick = function() {
+    screenShot("box", "monitor");
+    one = document.querySelector('#monitor img:last-child'); // 마지막으로 추가된 이미지를  변수에 할당
+  };
+
+  let two;
+  document.getElementById('shoot').onclick = function() {
+    screenShot("box", "monitor");
+    two = document.querySelector('#monitor img:nth-last-child(2)'); // 두 번째로 추가된 이미지를 f 변수에 할당
+  };
+
+  let three;
+  document.getElementById('shoot').onclick = function() {
+    screenShot("box", "monitor");
+    three = document.querySelector('#monitor img:nth-last-child(3)'); // 세 번째로 추가된 이미지를 g 변수에 할당
+  };
+
+
+  document.getElementById('play').onclick = function() {
+  let images = document.querySelectorAll('#monitor img');
+  let currentIndex = 0;
+
+  function showNextImage() {
+    let currentImage = images[currentIndex % images.length]; // 이미지 배열의 길이로 나눈 나머지를 사용하여 이미지 루프
+
+    // 이미지를 body의 정중앙으로 이동시킵니다.
+    currentImage.style.position = 'fixed';
+    currentImage.style.top = '50%';
+    currentImage.style.left = '50%';
+    currentImage.style.transform = 'translate(-50%, -50%)';
+
+    // 이미지의 크기를 400px * 300px으로 변경합니다.
+    currentImage.style.width = '500px';
+    currentImage.style.height = '450px';
+
+    // 이미지를 화면에 보여줍니다.
+    currentImage.style.display = 'block';
+
+    document.getElementById('overlay').style.display = 'block';
+
+
+    setTimeout(function() {
+      currentImage.style.display = 'none';
+      currentIndex++;
+      showNextImage();
+    }, 120);
+  }
+
+  showNextImage();
+};
+  //
+
+
+
+
+
+}
+
+  </script>
+</body>
+</html>
